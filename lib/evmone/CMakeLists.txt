@@ -5,7 +5,7 @@
 include(LibraryTools)
 
 hunter_add_package(intx)
-find_package(intx CONFIG REQUIRED)
+find_package(intx 0.4.0 CONFIG REQUIRED)
 
 add_library(evmone
     ${include_dir}/evmone/evmone.h
