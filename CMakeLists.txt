@@ -2,7 +2,7 @@
 # Copyright 2019 Pawel Bylica.
 # Licensed under the Apache License, Version 2.0.
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.7)
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/evmc/.git)
     message(FATAL_ERROR "Git submodules not initialized, execute:\n  git submodule update --init")
@@ -94,16 +94,16 @@ endif()
 
 # INSTALL
 
-set(install_targets evmone)
-if(TARGET evmone-standalone)
-    list(APPEND install_targets evmone-standalone)
-endif()
-if(TARGET evm-test)
-    list(APPEND install_targets evm-test)
-endif()
-if(TARGET evmone-bench)
-    list(APPEND install_targets evmone-bench)
-endif()
+# set(install_targets evmone)
+# if(TARGET evmone-standalone)
+#     list(APPEND install_targets evmone-standalone)
+# endif()
+# if(TARGET evm-test)
+#     list(APPEND install_targets evm-test)
+# endif()
+# if(TARGET evmone-bench)
+#     list(APPEND install_targets evmone-bench)
+# endif()
 
 set_target_properties(
     ${install_targets} PROPERTIES

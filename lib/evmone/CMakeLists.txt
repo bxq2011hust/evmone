@@ -31,9 +31,10 @@ set_target_properties(
 
 if(NOT SANITIZE)
     # On Linux, check if all symbols in evmone are resolved during linking.
-    target_link_options(evmone PRIVATE $<$<PLATFORM_ID:Linux>:LINKER:--no-undefined>)
+    # target_link_options(evmone PRIVATE $<$<PLATFORM_ID:Linux>:LINKER:--no-undefined>)
+
 endif()
 
 set_source_files_properties(evmone.cpp PROPERTIES COMPILE_DEFINITIONS PROJECT_VERSION="${PROJECT_VERSION}")
 
-add_standalone_library(evmone)
+# add_standalone_library(evmone)
