@@ -96,8 +96,7 @@ code_analysis analyze(evmc_revision rev, const uint8_t* code, size_t code_size) 
             is_terminator = true;
             break;
 
-        case ANY_SMALL_PUSH:
-        {
+        case ANY_SMALL_PUSH: {
             const auto push_size = static_cast<size_t>(opcode - OP_PUSH1) + 1;
             const auto push_end = std::min(code_pos + push_size, code_end);
 
@@ -112,12 +111,11 @@ code_analysis analyze(evmc_revision rev, const uint8_t* code, size_t code_size) 
             break;
         }
 
-        case ANY_LARGE_PUSH:
-        {
+        case ANY_LARGE_PUSH: {
             const auto push_size = static_cast<size_t>(opcode - OP_PUSH1) + 1;
             const auto push_end = code_pos + push_size;
-
-            auto& push_value = analysis.push_values.emplace_back();
+            analysis.push_values.emplace_back();
+            auto& push_value = analysis.push_values.back();
             // TODO: Add as_bytes() helper to intx.
             const auto push_value_bytes = reinterpret_cast<uint8_t*>(intx::as_words(push_value));
             auto insert_pos = &push_value_bytes[push_size - 1];

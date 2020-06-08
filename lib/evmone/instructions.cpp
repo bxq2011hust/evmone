@@ -849,7 +849,7 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
     if (has_value)
         cost += 9000;
 
-    if constexpr (kind == EVMC_CALL)
+    if (kind == EVMC_CALL)
     {
         if (has_value && state.msg->flags & EVMC_STATIC)
             return state.exit(EVMC_STATIC_MODE_VIOLATION);
@@ -917,8 +917,8 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
 
 
     state.stack[0] = result.status_code == EVMC_SUCCESS;
-
-    if (auto copy_size = std::min(size_t(output_size), result.output_size); copy_size > 0)
+    auto copy_size = std::min(size_t(output_size), result.output_size);
+    if (copy_size > 0)
         std::memcpy(&state.memory[size_t(output_offset)], result.output_data, copy_size);
 
     auto gas_used = msg.gas - result.gas_left;
@@ -989,8 +989,8 @@ const instruction* op_delegatecall(const instruction* instr, execution_state& st
     state.return_data.assign(result.output_data, result.output_size);
 
     state.stack[0] = result.status_code == EVMC_SUCCESS;
-
-    if (const auto copy_size = std::min(size_t(output_size), result.output_size); copy_size > 0)
+    const auto copy_size = std::min(size_t(output_size), result.output_size);
+    if (copy_size > 0)
         std::memcpy(&state.memory[size_t(output_offset)], result.output_data, copy_size);
 
     auto gas_used = msg.gas - result.gas_left;
@@ -1053,8 +1053,8 @@ const instruction* op_staticcall(const instruction* instr, execution_state& stat
     auto result = state.host.call(msg);
     state.return_data.assign(result.output_data, result.output_size);
     state.stack[0] = result.status_code == EVMC_SUCCESS;
-
-    if (auto copy_size = std::min(size_t(output_size), result.output_size); copy_size > 0)
+    auto copy_size = std::min(size_t(output_size), result.output_size);
+    if (copy_size > 0)
         std::memcpy(&state.memory[size_t(output_offset)], result.output_data, copy_size);
 
     auto gas_used = msg.gas - result.gas_left;
@@ -1234,7 +1234,7 @@ const instruction* opx_beginblock(const instruction* instr, execution_state& sta
     return ++instr;
 }
 
-constexpr op_table create_op_table_frontier() noexcept
+op_table create_op_table_frontier() noexcept
 {
     auto table = op_table{};
 
@@ -1352,14 +1352,14 @@ constexpr op_table create_op_table_frontier() noexcept
     return table;
 }
 
-constexpr op_table create_op_table_homestead() noexcept
+op_table create_op_table_homestead() noexcept
 {
     auto table = create_op_table_frontier();
     table[OP_DELEGATECALL] = {op_delegatecall, 40, 6, -5};
     return table;
 }
 
-constexpr op_table create_op_table_tangerine_whistle() noexcept
+op_table create_op_table_tangerine_whistle() noexcept
 {
     auto table = create_op_table_homestead();
     table[OP_BALANCE].gas_cost = 400;
@@ -1373,7 +1373,7 @@ constexpr op_table create_op_table_tangerine_whistle() noexcept
     return table;
 }
 
-constexpr op_table create_op_table_byzantium() noexcept
+op_table create_op_table_byzantium() noexcept
 {
     auto table = create_op_table_tangerine_whistle();
     table[OP_RETURNDATASIZE] = {op_returndatasize, 2, 0, 1};
@@ -1383,7 +1383,7 @@ constexpr op_table create_op_table_byzantium() noexcept
     return table;
 }
 
-constexpr op_table create_op_table_constantinople() noexcept
+op_table create_op_table_constantinople() noexcept
 {
     auto table = create_op_table_byzantium();
     table[OP_SHL] = {op_shl, 3, 2, -1};
@@ -1394,7 +1394,7 @@ constexpr op_table create_op_table_constantinople() noexcept
     return table;
 }
 
-constexpr op_table create_op_table_istanbul() noexcept
+op_table create_op_table_istanbul() noexcept
 {
     auto table = create_op_table_constantinople();
     table[OP_BALANCE] = {op_balance, 700, 1, 0};
@@ -1405,7 +1405,7 @@ constexpr op_table create_op_table_istanbul() noexcept
     return table;
 }
 
-constexpr op_table op_tables[] = {
+op_table op_tables[] = {
     create_op_table_frontier(),           // Frontier
     create_op_table_homestead(),          // Homestead
     create_op_table_tangerine_whistle(),  // Tangerine Whistle

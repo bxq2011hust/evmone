@@ -107,7 +107,7 @@ struct block_info
                       std::numeric_limits<decltype(stack_max_growth)>::max(),
         "Potential block_info::stack_max_growth overflow");
 };
-static_assert(sizeof(block_info) == 8);
+// static_assert(sizeof(block_info) == 8);
 
 struct execution_state
 {
