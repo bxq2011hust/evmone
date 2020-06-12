@@ -4,9 +4,9 @@
 
 cmake_minimum_required(VERSION 3.7)
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/evmc/.git)
-    message(FATAL_ERROR "Git submodules not initialized, execute:\n  git submodule update --init")
-endif()
+# if(NOT EXISTS ${CMAKE_SOURCE_DIR}/evmc/.git)
+#     message(FATAL_ERROR "Git submodules not initialized, execute:\n  git submodule update --init")
+# endif()
 
 option(BUILD_SHARED_LIBS "Build evmone as a shared library" ON)
 option(EVMONE_TESTING "Build tests and test tools" OFF)
@@ -19,6 +19,7 @@ include(CablePackage)
 include(CableToolchains)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
+include(ProjectEVMC)
 
 cable_configure_toolchain(DEFAULT cxx17-pic)
 cable_set_build_type(DEFAULT Release CONFIGURATION_TYPES Release Debug)
@@ -42,7 +43,7 @@ find_package(ethash CONFIG REQUIRED)
 
 option(EVMC_TOOLS "Build EVMC test tools" ${EVMONE_TESTING})
 option(EVMC_INSTALL "Install EVMC" OFF)
-add_subdirectory(evmc)
+# add_subdirectory(evmc)
 
 cable_configure_compiler()
 if(CABLE_COMPILER_GNULIKE)
@@ -93,7 +94,6 @@ endif()
 
 
 # INSTALL
-
 # set(install_targets evmone)
 # if(TARGET evmone-standalone)
 #     list(APPEND install_targets evmone-standalone)
@@ -105,17 +105,17 @@ endif()
 #     list(APPEND install_targets evmone-bench)
 # endif()
 
-set_target_properties(
-    ${install_targets} PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
-)
-
-install(TARGETS ${install_targets} EXPORT evmoneTargets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+# set_target_properties(
+#     ${install_targets} PROPERTIES
+#     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+#     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
+# )
+# message(STATUS ${install_targets})
+# install(TARGETS ${install_targets} EXPORT evmoneTargets
+#     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(DIRECTORY ${include_dir}/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
