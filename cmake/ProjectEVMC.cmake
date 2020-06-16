@@ -1,30 +1,40 @@
 include(ExternalProject)
 include(GNUInstallDirs)
 
-ExternalProject_Add(evmc
-        PREFIX ${CMAKE_SOURCE_DIR}/deps
-        DOWNLOAD_NAME evmc-650dec9d.tar.gz
-        DOWNLOAD_NO_PROGRESS 1
-        URL https://github.com/FISCO-BCOS/evmc/archive/650dec9d99e2a4e6846974b3411a47a70535718f.tar.gz
-        URL_HASH SHA256=8bc46ac2a24b0d0983a4d72695b81a10ba37c1970b860b8c7769cc7037ab38c8
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        BUILD_IN_SOURCE 1
-        LOG_CONFIGURE 1
-        LOG_BUILD 1
-        LOG_INSTALL 1
-        BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libevmc-instructions.a <INSTALL_DIR>/lib/libevmc-loader.a
-)
+if(NOT EVMC_ROOT)
+        ExternalProject_Add(evmc
+                PREFIX ${CMAKE_SOURCE_DIR}/deps
+                DOWNLOAD_NO_PROGRESS 1
+                # DOWNLOAD_NAME evmc-31a0f283.tar.gz
+                # URL https://github.com/FISCO-BCOS/evmc/archive/31a0f2837ba00879f0e2a506828760bfbbdbd1c8.tar.gz
+                # URL_HASH SHA256=5029c94de03d2c1b69da93f7d993db71e353e547c0a81b4ef31fe0d348b1b596
+                GIT_REPOSITORY https://github.com/FISCO-BCOS/evmc.git
+                GIT_TAG c009c755a20ff9658506d855904c17552f3144fe
+                CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                BUILD_IN_SOURCE 1
+                LOG_CONFIGURE 1
+                LOG_BUILD 1
+                LOG_INSTALL 1
+                BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libevmc-instructions.a <INSTALL_DIR>/lib/libevmc-loader.a
+        )
 
-ExternalProject_Get_Property(evmc INSTALL_DIR)
-set(EVMC_INCLUDE_DIRS ${INSTALL_DIR}/include)
-file(MAKE_DIRECTORY ${EVMC_INCLUDE_DIRS})  # Must exist.
+        ExternalProject_Get_Property(evmc INSTALL_DIR)
+
+        set(EVMC_INCLUDE_DIRS ${INSTALL_DIR}/include)
+        file(MAKE_DIRECTORY ${EVMC_INCLUDE_DIRS})  # Must exist.
+        set(EVMC_LOADER_LIBRARIES ${INSTALL_DIR}/lib/libevmc-loader.a)
+        set(EVMC_INSTRUCTIONS_LIBRARIES ${INSTALL_DIR}/lib/libevmc-instructions.a)
+else()
+        set(EVMC_INCLUDE_DIRS ${EVMC_ROOT}/include)
+        set(EVMC_LOADER_LIBRARIES ${EVMC_ROOT}/lib/libevmc-loader.a)
+        set(EVMC_INSTRUCTIONS_LIBRARIES ${EVMC_ROOT}/lib/libevmc-instructions.a)
+endif()
+
 add_library(EVMC::Loader STATIC IMPORTED)
-set(EVMC_LOADER_LIBRARIES ${INSTALL_DIR}/lib/libevmc-loader.a)
 set_property(TARGET EVMC::Loader PROPERTY IMPORTED_LOCATION ${EVMC_LOADER_LIBRARIES})
 set_property(TARGET EVMC::Loader PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EVMC_INCLUDE_DIRS})
 
 add_library(EVMC::Instructions STATIC IMPORTED)
-set(EVMC_INSTRUCTIONS_LIBRARIES ${INSTALL_DIR}/lib/libevmc-instructions.a)
 set_property(TARGET EVMC::Instructions PROPERTY IMPORTED_LOCATION ${EVMC_INSTRUCTIONS_LIBRARIES})
 set_property(TARGET EVMC::Instructions PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EVMC_INCLUDE_DIRS})
 

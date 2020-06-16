@@ -39,11 +39,15 @@ struct block_analysis
     }
 };
 
-code_analysis analyze(evmc_revision rev, const uint8_t* code, size_t code_size) noexcept
+code_analysis analyze(evmc_revision rev, const uint8_t* code, size_t code_size,
+    evmc_host_context* host_context) noexcept
 {
     const auto& op_tbl = get_op_table(rev);
     const auto opx_beginblock_fn = op_tbl[OPX_BEGINBLOCK].fn;
-
+    auto& mutable_op_tbl = const_cast<op_table&>(op_tbl);
+    mutable_op_tbl[OP_SLOAD].gas_cost = host_context->metrics->sloadGas;
+    mutable_op_tbl[OP_CREATE].gas_cost = host_context->metrics->createGas;
+    mutable_op_tbl[OP_CREATE2].gas_cost = host_context->metrics->createGas;
     code_analysis analysis;
 
     const auto max_instrs_size = code_size + 1;
