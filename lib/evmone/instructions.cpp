@@ -312,7 +312,14 @@ const instruction* op_sha3(const instruction* instr, execution_state& state) noe
         return state.exit(EVMC_OUT_OF_GAS);
 
     auto data = s != 0 ? &state.memory[i] : nullptr;
-    size = intx::be::load<uint256>(ethash::keccak256(data, s));
+    if (state.host.get_host_context()->sm3_hash_fn)
+    {
+        size = intx::be::load<uint256>(state.host.get_host_context()->sm3_hash_fn(data, s));
+    }
+    else
+    {
+        size = intx::be::load<uint256>(ethash::keccak256(data, s));
+    }
     return ++instr;
 }
 
@@ -516,8 +523,8 @@ const instruction* op_sstore(const instruction* instr, execution_state& state) n
     case EVMC_STORAGE_UNCHANGED:
         if (state.rev >= EVMC_ISTANBUL)
             cost = 800;
-        else if (state.rev == EVMC_CONSTANTINOPLE)
-            cost = 200;
+        // else if (state.rev == EVMC_CONSTANTINOPLE)
+        //     cost = 200;
         else
             cost = 5000;
         break;
@@ -527,13 +534,13 @@ const instruction* op_sstore(const instruction* instr, execution_state& state) n
     case EVMC_STORAGE_MODIFIED_AGAIN:
         if (state.rev >= EVMC_ISTANBUL)
             cost = 800;
-        else if (state.rev == EVMC_CONSTANTINOPLE)
-            cost = 200;
+        // else if (state.rev == EVMC_CONSTANTINOPLE)
+        //     cost = 200;
         else
             cost = 5000;
         break;
     case EVMC_STORAGE_ADDED:
-        cost = 20000;
+        cost = state.host.get_host_context()->metrics->sstoreSetGas;
         break;
     case EVMC_STORAGE_DELETED:
         cost = 5000;
@@ -847,7 +854,7 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
     auto has_value = value != 0;
 
     if (has_value)
-        cost += 9000;
+        cost += state.host.get_host_context()->metrics->valueTransferGas;
 
     if (kind == EVMC_CALL)
     {
@@ -856,7 +863,8 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
 
         if (has_value || state.rev < EVMC_SPURIOUS_DRAGON)
         {
-            if (!state.host.account_exists(dst))
+            if (state.host.get_host_context()->version < 0x02050000 &&
+                !state.host.account_exists(dst))
                 cost += 25000;
         }
     }
@@ -879,7 +887,8 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
     if (state.msg->depth >= 1024)
     {
         if (has_value)
-            state.gas_left += 2300;  // Return unused stipend.
+            state.gas_left +=
+                state.host.get_host_context()->metrics->callStipend;  // Return unused stipend.
         if (state.gas_left < 0)
             return state.exit(EVMC_OUT_OF_GAS);
         return ++instr;
@@ -903,13 +912,14 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
             intx::be::load<uint256>(state.host.get_balance(state.msg->destination));
         if (balance < value)
         {
-            state.gas_left += 2300;  // Return unused stipend.
+            state.gas_left +=
+                state.host.get_host_context()->metrics->callStipend;  // Return unused stipend.
             if (state.gas_left < 0)
                 return state.exit(EVMC_OUT_OF_GAS);
             return ++instr;
         }
 
-        msg.gas += 2300;  // Add stipend.
+        msg.gas += state.host.get_host_context()->metrics->callStipend;  // Add stipend.
     }
 
     auto result = state.host.call(msg);
@@ -924,7 +934,7 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
     auto gas_used = msg.gas - result.gas_left;
 
     if (has_value)
-        gas_used -= 2300;
+        gas_used -= state.host.get_host_context()->metrics->callStipend;
 
     if ((state.gas_left -= gas_used) < 0)
         return state.exit(EVMC_OUT_OF_GAS);
@@ -1207,7 +1217,7 @@ const instruction* op_selfdestruct(const instruction*, execution_state& state) n
             // sending value to a non-existing account.
             if (!state.host.account_exists(addr))
             {
-                if ((state.gas_left -= 25000) < 0)
+                if ((state.gas_left -= state.host.get_host_context()->metrics->callNewAccount) < 0)
                     return state.exit(EVMC_OUT_OF_GAS);
             }
         }
