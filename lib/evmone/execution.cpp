@@ -5,6 +5,8 @@
 #include "execution.hpp"
 #include "analysis.hpp"
 #include <memory>
+#include <iostream>
+#include <sstream>
 
 namespace evmone
 {
@@ -23,9 +25,16 @@ evmc_result execute(evmc_vm* /*unused*/, const evmc_host_interface* host, evmc_h
     state->rev = rev;
 
     const auto* instr = &state->analysis->instrs[0];
+    std::cout<<std::endl<<"***** start execution"<<std::endl;
+    std::stringstream ss;
     while (instr != nullptr)
+    {
         instr = instr->fn(instr, *state);
-
+        ss<<" "<<state->gas_left;
+        std::cout<<state->gas_left<<std::endl;
+    }
+    std::cout<<std::endl<<ss.str()<<std::endl;
+    std::cout<<std::endl<<"***** end execution"<<std::endl;
     const auto gas_left =
         (state->status == EVMC_SUCCESS || state->status == EVMC_REVERT) ? state->gas_left : 0;
 

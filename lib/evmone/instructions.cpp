@@ -4,6 +4,8 @@
 
 #include "analysis.hpp"
 #include <ethash/keccak.hpp>
+#include <iostream>
+#include <sstream>
 
 namespace evmone
 {
@@ -497,6 +499,13 @@ const instruction* op_sload(const instruction* instr, execution_state& state) no
     auto& x = state.stack.top();
     x = intx::be::load<uint256>(
         state.host.get_storage(state.msg->destination, intx::be::store<evmc::bytes32>(x)));
+    std::stringstream ss;
+    auto p = intx::as_bytes(x);
+    ss<< std::hex;
+    for (size_t i =0;i<32;++i) {
+        ss<<(int)p[i];
+    }
+    std::cout<< std::endl<<"gas_left:" <<state.gas_left<<", op_sload=" << ss.str() << std::endl;
     return ++instr;
 }
 
@@ -517,6 +526,16 @@ const instruction* op_sstore(const instruction* instr, execution_state& state)
     const auto key = intx::be::store<evmc::bytes32>(state.stack.pop());
     const auto value = intx::be::store<evmc::bytes32>(state.stack.pop());
     auto status = state.host.set_storage(state.msg->destination, key, value);
+    std::stringstream ss;
+    ss<<"key=";
+    for (size_t i =0;i<32;++i) {
+        ss<< std::hex << (int)key.bytes[i];
+    }
+    ss<<",value=";
+    for (size_t i =0;i<32;++i) {
+        ss<< std::hex << (int)value.bytes[i];
+    }
+    std::cout<<std::endl<< "gas_left:" <<state.gas_left <<"status="<<status<<", op_sstore=" << ss.str() << std::endl;
     int cost = 0;
     switch (status)
     {
