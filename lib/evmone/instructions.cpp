@@ -4,6 +4,7 @@
 
 #include "analysis.hpp"
 #include <ethash/keccak.hpp>
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
@@ -499,13 +500,13 @@ const instruction* op_sload(const instruction* instr, execution_state& state) no
     auto& x = state.stack.top();
     x = intx::be::load<uint256>(
         state.host.get_storage(state.msg->destination, intx::be::store<evmc::bytes32>(x)));
-    std::stringstream ss;
-    auto p = intx::as_bytes(x);
-    ss<< std::hex;
-    for (size_t i =0;i<32;++i) {
-        ss<<(int)p[i];
-    }
-    std::cout<< std::endl<<"gas_left:" <<state.gas_left<<", op_sload=" << ss.str() << std::endl;
+    // std::stringstream ss;
+    // auto p = intx::as_bytes(x);
+    // ss<< std::hex;
+    // for (size_t i =0;i<32;++i) {
+    //     ss<<(int)p[i];
+    // }
+    // std::cout<< std::endl<<"gas_left:" <<state.gas_left<<", op_sload=" << ss.str() << std::endl;
     return ++instr;
 }
 
@@ -526,16 +527,17 @@ const instruction* op_sstore(const instruction* instr, execution_state& state)
     const auto key = intx::be::store<evmc::bytes32>(state.stack.pop());
     const auto value = intx::be::store<evmc::bytes32>(state.stack.pop());
     auto status = state.host.set_storage(state.msg->destination, key, value);
-    std::stringstream ss;
-    ss<<"key=";
-    for (size_t i =0;i<32;++i) {
-        ss<< std::hex << (int)key.bytes[i];
-    }
-    ss<<",value=";
-    for (size_t i =0;i<32;++i) {
-        ss<< std::hex << (int)value.bytes[i];
-    }
-    std::cout<<std::endl<< "gas_left:" <<state.gas_left <<"status="<<status<<", op_sstore=" << ss.str() << std::endl;
+    // std::stringstream ss;
+    // ss<<"key=";
+    // for (size_t i =0;i<32;++i) {
+    //     ss<< std::hex << (int)key.bytes[i];
+    // }
+    // ss<<",value=";
+    // for (size_t i =0;i<32;++i) {
+    //     ss<< std::hex << (int)value.bytes[i];
+    // }
+    // std::cout<<std::endl<< "gas_left:" <<state.gas_left <<"status="<<status<<", op_sstore=" <<
+    // ss.str() << std::endl;
     int cost = 0;
     switch (status)
     {
@@ -837,6 +839,7 @@ const instruction* op_return(const instruction*, execution_state& state) noexcep
 template <evmc_call_kind kind>
 const instruction* op_call(const instruction* instr, execution_state& state) noexcept
 {
+    auto start = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
     const auto arg = instr->arg;
     auto gas = state.stack[0];
     const auto dst = intx::be::trunc<evmc::address>(state.stack[1]);
@@ -940,7 +943,8 @@ const instruction* op_call(const instruction* instr, execution_state& state) noe
 
         msg.gas += state.host.get_host_context()->metrics->callStipend;  // Add stipend.
     }
-
+    auto end = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
+    std::cout << std::endl << start << "***** op_call prepare(us):" << end - start << std::endl;
     auto result = state.host.call(msg);
     state.return_data.assign(result.output_data, result.output_size);
 
