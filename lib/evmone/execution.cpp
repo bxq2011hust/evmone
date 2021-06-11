@@ -4,6 +4,7 @@
 
 #include "execution.hpp"
 #include "analysis.hpp"
+#include <iostream>
 #include <memory>
 
 namespace evmone
@@ -24,7 +25,12 @@ evmc_result execute(evmc_vm* /*unused*/, const evmc_host_interface* host, evmc_h
 
     const auto* instr = &state->analysis->instrs[0];
     while (instr != nullptr)
+    {
+        auto index = (size_t)(instr - &state->analysis->instrs[0]);
+        std::cout << "[index=" << index << "],[instruction=" << state->analysis->opcodes[index]
+                  << "]" << std::endl;
         instr = instr->fn(instr, *state);
+    }
 
     const auto gas_left =
         (state->status == EVMC_SUCCESS || state->status == EVMC_REVERT) ? state->gas_left : 0;

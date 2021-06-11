@@ -4,6 +4,7 @@
 
 #include "analysis.hpp"
 #include <ethash/keccak.hpp>
+#include <iostream>
 
 namespace evmone
 {
@@ -558,7 +559,8 @@ const instruction* op_jump(const instruction*, execution_state& state) noexcept
     if (std::numeric_limits<int>::max() < dst ||
         (pc = find_jumpdest(*state.analysis, static_cast<int>(dst))) < 0)
         return state.exit(EVMC_BAD_JUMP_DESTINATION);
-
+    std::cout << "[" << state.analysis->opcodes[static_cast<size_t>(pc)]
+              << "],gas_left=" << state.gas_left << std::endl;
     return &state.analysis->instrs[static_cast<size_t>(pc)];
 }
 
