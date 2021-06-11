@@ -84,7 +84,10 @@ code_analysis analyze(evmc_revision rev, const uint8_t* code, size_t code_size,
                 static_cast<int32_t>(analysis.instrs.size() - 1));
         }
         else
+        {
+            analysis.opcodes.emplace_back(opcode);
             analysis.instrs.emplace_back(opcode_info.fn);
+        }
 
         auto& instr = analysis.instrs.back();
 

@@ -191,6 +191,7 @@ struct instruction
 struct code_analysis
 {
     std::vector<instruction> instrs;
+    std::vector<int> opcodes;
 
     /// Storage for large push values.
     std::vector<intx::uint256> push_values;
